@@ -311,7 +311,9 @@ def main():
     gumexceptor_posix_path = os.path.join(custom_dir, "subprojects/frida-gum/gum/backend-posix/gumexceptor-posix.c")
     gumexceptor_posix_patch_strings = ["gum_interceptor_replace",
                                        "gum_exceptor_backend_replacement_signal, self, NULL);",
-                                       "gum_exceptor_backend_replacement_sigaction, self, NULL);"]
+                                       "gum_exceptor_backend_replacement_sigaction, self, NULL);",
+                                       "gum_exceptor_backend_replacement_signal, NULL, &options);",
+                                       "gum_exceptor_backend_replacement_sigaction, NULL, &options);"]
     for patch_string in gumexceptor_posix_patch_strings:
         replace_strings_in_files(gumexceptor_posix_path,
                                  patch_string,
