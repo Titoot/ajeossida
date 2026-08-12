@@ -62,7 +62,7 @@ def git_clone_repo():
     destination_dir = os.path.join(os.getcwd(), CUSTOM_NAME)
 
     print(f"\n[*] Cloning repository {repo_url} to {destination_dir}...")
-    run_command(f"git clone --branch 16.6.1 --depth 1 --recurse-submodules {repo_url} {destination_dir}")
+    run_command(f"git clone --recurse-submodules {repo_url} {destination_dir}")
 
 
 def download_ndk():
@@ -186,7 +186,7 @@ def main():
     
     ndk_path = os.path.join(os.getcwd(), download_ndk())
 
-    architectures = ["android-arm64", "android-arm", "android-x86_64", "android-x86"]
+    architectures = ["android-arm64", "android-arm"]
     if TEMP == 1:
         architectures = ["android-arm64"]
     build_dirs = [configure_build(ndk_path, arch) for arch in architectures]
