@@ -62,7 +62,7 @@ def git_clone_repo():
     destination_dir = os.path.join(os.getcwd(), CUSTOM_NAME)
 
     print(f"\n[*] Cloning repository {repo_url} to {destination_dir}...")
-    run_command(f"git clone --recurse-submodules {repo_url} {destination_dir}")
+    run_command(f"git clone --branch 16.6.1 --depth 1 --recurse-submodules {repo_url} {destination_dir}")
 
 
 def download_ndk():
