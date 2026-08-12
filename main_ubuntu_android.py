@@ -62,13 +62,13 @@ def git_clone_repo():
     destination_dir = os.path.join(os.getcwd(), CUSTOM_NAME)
 
     print(f"\n[*] Cloning repository {repo_url} to {destination_dir}...")
-    run_command(f"git clone --branch 16.6.1 --depth 1 --recurse-submodules {repo_url} {destination_dir}")
+    run_command(f"git clone --depth 1 --recurse-submodules {repo_url} {destination_dir}")
 
 
 def download_ndk():
-    url = "https://dl.google.com/android/repository/android-ndk-r25c-linux.zip"
-    file_name = "android-ndk-r25c-linux.zip"
-    unzip_dir = "android-ndk-r25c"
+    url = "https://dl.google.com/android/repository/android-ndk-r29-linux.zip"
+    file_name = "android-ndk-r29-linux.zip"
+    unzip_dir = "android-ndk-r29"
 
     print(f"\n[*] Downloading {file_name}...")
     response = requests.get(url, stream=True)
