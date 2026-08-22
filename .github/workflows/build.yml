@@ -1,18 +1,25 @@
-name: Build Custom Frida (ajeossida)
+name: Build ajeossida-frida (bridge-patched)
 
 on:
   workflow_dispatch:
+    inputs:
+      frida_version:
+        description: "Frida tag to build (anchors verified for 17.9.1; other tags fail loudly)"
+        required: false
+        default: "17.9.1"
   push:
     branches: [ main ]
   pull_request:
+
+env:
+  CUSTOM_NAME: ajeossida
+  # Empty on push/PR events -> falls back to the 17.9.1 default in the script
+  FRIDA_VERSION: ${{ github.event.inputs.frida_version || '17.9.1' }}
 
 jobs:
   build:
     runs-on: ubuntu-22.04
     timeout-minutes: 360
-
-    env:
-      CUSTOM_NAME: ajeossida
 
     steps:
       # -----------------------------
@@ -60,11 +67,41 @@ jobs:
           ulimit -n 1048576 || true
 
       # -----------------------------
-      # Run your build script
+      # Guard: the bridge patch module must be present
+      # (main_ubuntu_android.py imports it right before the first build)
+      # -----------------------------
+      - name: Verify bridge patch module present
+        run: |
+          test -f patch_java_bridge.py || { \
+            echo "::error::patch_java_bridge.py missing from repo root"; exit 1; }
+
+      # -----------------------------
+      # Run your build script (applies frida-java-bridge P1-P5 itself)
       # -----------------------------
       - name: Run Frida custom build
         run: |
           python3 main_ubuntu_android.py
+
+      # -----------------------------
+      # The in-script patch asserts anchors; this grep makes CI fail loudly
+      # if the patched source doesn't carry our markers (never ship silent)
+      # -----------------------------
+      - name: Sanity-check bridge patches applied
+        run: |
+          if grep -rq "ajeossida: no libart text hooks" \
+              ajeossida/subprojects/frida-java-bridge/lib/android.js; then
+            echo "[ci] bridge patch markers present in vendored source"
+          else
+            echo "::error::bridge patch markers missing — patch step did not run"
+            exit 1
+          fi
+
+      # -----------------------------
+      # Checksums
+      # -----------------------------
+      - name: Generate checksums
+        run: |
+          cd assets && sha256sum * > checksums.txt && cat checksums.txt
 
       # -----------------------------
       # Upload build artifacts
@@ -72,5 +109,5 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ajeossida-frida-build
+          name: ajeossida-frida-build-bridge-${{ env.FRIDA_VERSION }}
           path: assets/

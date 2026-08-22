@@ -60,9 +60,10 @@ def run_command(command, cwd=None):
 def git_clone_repo():
     repo_url = "https://github.com/frida/frida.git"
     destination_dir = os.path.join(os.getcwd(), CUSTOM_NAME)
+    frida_version = os.environ.get("FRIDA_VERSION", "17.9.1")
 
-    print(f"\n[*] Cloning repository {repo_url} to {destination_dir}...")
-    run_command(f"git clone --branch 17.9.1 --depth 1 --recurse-submodules {repo_url} {destination_dir}")
+    print(f"\n[*] Cloning repository {repo_url} (tag {frida_version}) to {destination_dir}...")
+    run_command(f"git clone --branch {frida_version} --depth 1 --recurse-submodules {repo_url} {destination_dir}")
 
 
 def download_ndk():
@@ -326,6 +327,21 @@ def main():
         replace_strings_in_files(custom_dir,
                                  patch_string,
                                  patch_string.replace("frida", CUSTOM_NAME))
+
+    # frida-java-bridge patches (native universal bypass support):
+    #   P1 no init-time libart text patch (fixupArtQuickDeliverExceptionBug)
+    #   P2 no libart interceptor hooks (DoCall / art_quick_* wrappers /
+    #      GetOatQuickMethodHeader / GC hooks)
+    #   P3 .implementation dispatch via ubypass ub_hook_artmethod
+    #      (entrypoint-only swap into the real JIT region; zero libart text
+    #      bytes, zero flag writes on the original)
+    #   P4 revert() restores the entrypoint via ub_unhook_artmethod
+    #   P5 Java.choose throws (no libopenjdkjvmti load / boot deopt)
+    # Anchors are asserted: a drifted vendored bridge aborts the build here
+    # instead of silently shipping an unpatched gadget.
+    print(f"\n[*] Applying frida-java-bridge patches...")
+    import patch_java_bridge
+    patch_java_bridge.patch_java_bridge(custom_dir)
 
     # Perform the first build
     for build_dir in build_dirs:
