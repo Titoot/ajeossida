@@ -97,7 +97,7 @@ jobs:
             echo "[ci] frida 17: bridge ships via frida-tools runtime bundle - no source patch needed here"
           fi
 
-- name: Generate checksums
+      - name: Generate checksums
         run: |
           cd assets && sha256sum * > checksums.txt && cat checksums.txt
 
