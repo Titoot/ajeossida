@@ -339,9 +339,14 @@ def main():
     #   P5 Java.choose throws (no libopenjdkjvmti load / boot deopt)
     # Anchors are asserted: a drifted vendored bridge aborts the build here
     # instead of silently shipping an unpatched gadget.
-    print(f"\n[*] Applying frida-java-bridge patches...")
     import patch_java_bridge
-    patch_java_bridge.patch_java_bridge(custom_dir)
+    _bridge_src = os.path.join(custom_dir, "subprojects", "frida-java-bridge")
+    if os.path.isdir(_bridge_src):
+        print(f"\n[*] Applying frida-java-bridge patches...")
+        patch_java_bridge.patch_java_bridge(custom_dir)
+    else:
+        print(f"\n[!] frida-java-bridge source not in build tree (frida 17 delivers it via frida-tools) "
+              f"- skipping; patch the runtime bundle with patch_frida_tools_bridge.py instead")
 
     # Perform the first build
     for build_dir in build_dirs:

@@ -86,20 +86,18 @@ jobs:
       # The in-script patch asserts anchors; this grep makes CI fail loudly
       # if the patched source doesn't carry our markers (never ship silent)
       # -----------------------------
-      - name: Sanity-check bridge patches applied
+      - name: Report bridge patch status
         run: |
-          if grep -rq "ajeossida: no libart text hooks" \
-              ajeossida/subprojects/frida-java-bridge/lib/android.js; then
-            echo "[ci] bridge patch markers present in vendored source"
+          if [ -d ajeossida/subprojects/frida-java-bridge ]; then
+            grep -rq "ajeossida: no libart text hooks" \
+              ajeossida/subprojects/frida-java-bridge/lib/android.js \
+              && echo "[ci] bridge patches applied" \
+              || { echo "::error::bridge source present but unpatched"; exit 1; }
           else
-            echo "::error::bridge patch markers missing — patch step did not run"
-            exit 1
+            echo "[ci] frida 17: bridge ships via frida-tools runtime bundle - no source patch needed here"
           fi
 
-      # -----------------------------
-      # Checksums
-      # -----------------------------
-      - name: Generate checksums
+- name: Generate checksums
         run: |
           cd assets && sha256sum * > checksums.txt && cat checksums.txt
 
